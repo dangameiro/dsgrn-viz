@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSGRN Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: rgb(233, 229, 229);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    h1 {
+      margin: 10px;
+    }
+
+    a {
+      text-decoration: none;
+      color: rgb(42, 42, 252);
+    }
+
+    a:visited {
+      text-decoration: none;
+      color: rgb(42, 42, 252);
+    }
+
+    #main_div {
+      text-align: center;
+    }
+
+    #title {
+      text-align: center;
+    }
+
+    #top_options {
+      background-color: rgb(247, 180, 158);
+      margin-left: 5%;
+      margin-right: 5%;
+      margin-top: 10px;
+      text-align: center;
+      padding: 20px;
+      box-shadow: 0px 5px 5px grey;
+    }
+
+    #bottom_options {
+      background-color: rgb(247, 180, 158);
+      padding: 20px;
+      margin-left: 5%;
+      margin-right: 5%;
+      box-shadow: 0px 5px 5px grey;
+    }
+
+    #viz {
+      background-color: rgb(197, 234, 243);
+      box-shadow: 0px 5px 5px grey;
+    }
+
+    #myDiv {
+      margin-top: 22px;
+      left: 52%;
+    }
+
+    #network {
+      pointer-events: none;
+    }
+
+    #messages {
+      position: absolute;
+      top: 220px;
+      right: 57%;
+      color: red;
+      font-size: 25px;
+      padding: 5px;
+    }
+
+    #info {
+      position: absolute;
+      display: inline-block;
+      width: 200px;
+      height: 160px;
+      transform: translate(-720px, 400px);
+      background-color: white;
+      box-shadow: 0px 5px 5px grey;
+      text-align: left;
+      padding-left: 15px;
+    }
+
+    #instructions {
+      text-align: left;
+      margin-left: 5%;
+      margin-right: 5%;
+      padding: 10px;
+      line-height: 1.4em;
+    }
+
+    @media screen and (max-width: 1450px),
+    screen and (max-height: 780px) {
+      #main_graphs {
+        transform: scale(0.9)
+      }
+
+      #messages {
+        top: 80px;
+        right: 59%;
+      }
+
+      #br4 {
+        display: none;
+      }
+    }
+
+    @media screen and (max-width: 1350px),
+    screen and (max-height: 700px) {
+      #main_graphs {
+        transform: scale(0.8)
+      }
+
+      #br3 {
+        display: none;
+      }
+    }
+
+    @media screen and (max-width: 1200px),
+    screen and (max-height: 640px) {
+      #main_graphs {
+        transform: scale(0.7)
+      }
+
+      #br2 {
+        display: none;
+      }
+
+      #viz {
+        transform: scale(0.9) translate(0px, -50px);
+      }
+    }
+
+    @media screen and (max-width: 1050px),
+    screen and (max-height: 580px) {
+      #main_graphs {
+        transform: scale(0.65)
+      }
+
+      #br1 {
+        display: none;
+      }
+
+      #viz {
+        transform: scale(0.75) translate(0px, -100px);
+      }
+    }
+
+    @media screen and (min-width: 1050px) {
+      .select_br {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="title">
+    <h1>DSGRN Visualization</h1>
+    <a href="#instructions">Instructions</a>
+  </div>
+
+  <div id="top_options">
+    <label for="myfile" style="display: inline-block;">Add JSON file:</label>
+    <input type="file" id="myfile" style="display: none;">
+    <input type="button" value="Choose file" onclick="document.getElementById('myfile').click();"
+      style="display: inline-block;" />
+
+    <label for="fileSelect" style="margin-left: 25px; display: inline-block;">Select file:</label>
+    <select id="fileSelect" style="display: inline-block;">
+      <option value="data/morse_graph_database_2D.json">2D example</option>
+      <option value="data/morse_graph_database_2D_large.json">2D example (large)</option>
+      <option value="data/morse_graph_database_3D.json">3D example</option>
+      <option value="user" id="user">User file</option>
+    </select>
+
+    <div class="select_br">
+      <br><br>
+    </div>
+
+    <label for="param_node" style="margin-left: 25px; display: inline-block;">Select parameter node:</label>
+    <select id="param_node" style="display: inline-block;"></select>
+
+    <label for="colormap_select" style="margin-left: 15px;">Colormap:</label>
+    <select id="colormap_select">
+      <option value="0" id="cm0" selected="selected">Category10</option>
+      <option value="1" id="cm1">Rainbow</option>
+      <option value="2" id="cm2">Sinebow</option>
+      <option value="3" id="cm3">Paired</option>
+      <option value="4" id="cm4">Tableau10</option>
+      <option value="5" id="cm5">Spectral</option>
+      <option value="6" id="cm6">Turbo</option>
+      <option value="7" id="cm7">Cool</option>
+      <option value="8" id="cm8">Warm</option>
+      <option value="9" id="cm9">Plasma</option>
+      <option value="10" id="cm10">Cividis</option>
+    </select>
+  </div>
+
+  <div id="main_div">
+
+    <div id="main_graphs">
+      <div id="network"
+        style="position: absolute; display: inline-block; width: 200px; height: 200px; transform: translate(-720px, 100px);">
+      </div>
+      <div id="info">
+        <p id="space_dim_selected">Space dimension: </p>
+        <p id="param_node_selected">Parameter node: </p>
+        <p id="num_ms">Morse sets: </p>
+        <p id="num_attractors">Attractors: </p>
+      </div>
+      <p id="messages">Invalid Interval</p>
+      <div id="morse_graph" style="position: absolute; display: inline-block; transform: translate(-460px, 170px);">
+      </div>
+      <div id="myDiv" style="position: absolute; display: inline-block;">
+      </div>
+    </div>
+
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <div id="br1">
+      <br><br><br>
+    </div>
+    <div id="br2">
+      <br><br><br>
+    </div>
+    <div id="br3">
+      <br><br><br><br>
+    </div>
+    <div id="br4">
+      <br><br><br><br>
+    </div>
+
+    <div id="bottom_options">
+      <label for="line_width" style="margin-left: 25px;">Line width:</label>
+      <input id="line_width" type="range" min="0.2" max="4.2" step="0.2" />
+
+      <label for="face_alpha" style="margin-left: 25px;">Face opacity:</label>
+      <input id="face_alpha" type="range" min="0.0" max="1.0" step="0.1" />
+
+      <label for="arr_size" style="margin-left: 25px;">Arrow size:</label>
+      <input id="arr_size" type="range" min="0.1" max="1.0" step="0.1" />
+
+      <br><br><br>
+
+      <form style="display: inline-block;" method="post">
+
+        <label for="select_method">Selection method:</label>
+        <select id="select_method">
+          <option value="0" id="sm0">Single morse set</option>
+          <option value="1" id="sm1">Multiple morse sets</option>
+          <option value="2" id="sm2">Interval</option>
+        </select>
+
+        <label for="arrows" style="margin-left: 15px;">Show arrows:</label>
+        <select id="arrows">
+          <option value="0" id="a0">All</option>
+          <option value="1" id="a1">Single arrows only</option>
+          <option value="2" id="a2">Double arrows only</option>
+          <option value="3" id="a3">Self arrows only</option>
+          <option value="4" id="a4">Single and double arrows</option>
+          <option value="5" id="a5" selected="selected">None</option>
+        </select>
+
+        <div class="select_br">
+          <br><br>
+        </div>
+
+        <label for="wireframe" style="margin-left: 15px;">Show wireframe:</label>
+        <select id="wireframe">
+          <option value="0" id="w0" selected="selected">All</option>
+          <option value="1" id="w1">Only selected morse sets</option>
+          <option value="2" id="w2">None</option>
+        </select>
+    </div>
+
+    </form>
+
+    <br>
+    <div id="param_graph">
+      <svg id='viz'></svg>
+    </div>
+    <br><br>
+
+    <div id="instructions">
+      <h2 style="text-align: center;">Instructions:</h2>
+      <p>
+        This application is a visualization tool for <a target="_blank"
+          href="https://github.com/marciogameiro/DSGRN">Dynamic Signatures Generated by Regulatory Networks (DSGRN)</a>,
+        a
+        software package to explore the dynamics generated by a regulatory network. The input to DSGRN is a regulatory
+        network and the output is a database representing the dynamics of the network across all parameter space.
+      </p>
+      <p>
+        To use this application a JSON database with the results from DSGRN is needed. Instructions on creating
+        one are available on the DSGRN repository. You can upload your own database generted by DSGRN or select
+        one of the available databases.
+      </p>
+      <p>
+        The top panel shows the nework on the left, Morse graph in the middle, and cell complex on the right
+        with the Morse sets highlighted. The bottom panel shows
+        the parameter graph. To select a parameter node to visualize, click on the node in the parameter graph or select
+        from the drop
+        down at the top. The parameter graph becomes slow when loading databases with many parameter nodes (in the
+        thousands).
+        To view a specific morse set you can click on a node in the
+        Morse graph.
+        You can also select more than one morse
+        set by changing the 'selection method' option to 'multiple morse sets', or select an interval of morse sets by
+        changing it to 'interval'. To return to viewing all morse sets after selecting one simply click on
+        the one that is selected.
+      </p>
+      <p>
+        This application was created with <a target="_blank" href="https://d3js.org/">d3.js</a> and
+        <a target="_blank" href="https://plotly.com/javascript/">Plotly.js</a>.
+        The available colormaps are built-in d3 colormaps and can be seen
+        <a target="_blank" href="https://observablehq.com/@d3/color-schemes">here</a>.
+      </p>
+    </div>
+
+  </div>
+
+  <script src="scripts/d3.v5.min.js"></script>
+  <script src="scripts/plotly-latest.min.js"></script>
+  <script src=https://unpkg.com/viz.js@1.8.0/viz.js></script>
+  <script src=https://unpkg.com/d3-graphviz@1.5.0/build/d3-graphviz.min.js></script>
+  <script src="scripts/dsgrn_viz.js"></script>
+
+</body>
+
+</html>
