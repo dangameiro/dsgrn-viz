@@ -1,3 +1,8 @@
+// dsgrn_viz.js
+// Daniel Gameiro
+// 2020-08-30
+// MIT LICENSE
+
 var general_settings = {
   transitionDuration: 300,
   firstRun: true,
