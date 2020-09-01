@@ -57,11 +57,17 @@ var colorMaps = {
   colorblind1: ["#a50026", "#d73027", "#f46d43", "#fdae61", "#fee090", "#ffffbf", "#e0f3f8", "#abd9e9", "#74add1", "#4575b4", "#313695"]
 };
 
+d3.select("#messages").style("display", "none");
+
 document.getElementById("arr_size").value = arrow_settings.factor;
 
 const cellComplexScale = (pt) => 50 + pt * 200;
 const fillRange = (start, end) => Array(end - start + 1).fill().map((item, index) => start + index);
 var colorMap = d3.scaleOrdinal(d3.schemeCategory10);
+
+function invalid_interval_message() {
+  d3.select("#messages").style("display", "none");
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////  Network  ////////////////////////////////////////////////////////////////////
@@ -1050,6 +1056,7 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
   }
 
   function select_interval_ms(click_ind) {
+    invalid_interval_message();
     if (interval_node1 == null || interval_node2 != null) {
       interval_node1 = click_ind;
       interval_node2 = null;
@@ -1069,6 +1076,12 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
           general_settings.selected_ms_2d.push(i);
         });
         set_selection();
+      }
+      else {
+        d3.select("#messages")
+          .style("display", "");
+
+        setTimeout(invalid_interval_message, 5000);
       }
     }
     else {
@@ -2551,6 +2564,7 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
 
     }
     else {
+      invalid_interval_message();
       if (interval_node1 == null) {
         interval_node1 = click_ind;
         general_settings.selected_ms_3d = [click_ind];
@@ -2571,6 +2585,11 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
           interval_node2 = null;
           general_settings.selected_ms_3d = [];
           plotCells(cells);
+
+          d3.select("#messages")
+            .style("display", "");
+
+          setTimeout(invalid_interval_message, 5000);
         }
       }
       else {

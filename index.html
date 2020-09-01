@@ -75,6 +75,15 @@
       pointer-events: none;
     }
 
+    #messages {
+      position: absolute;
+      top: 220px;
+      right: 57%;
+      color: red;
+      font-size: 25px;
+      padding: 5px;
+    }
+
     #info {
       position: absolute;
       display: inline-block;
@@ -99,6 +108,11 @@
     screen and (max-height: 780px) {
       #main_graphs {
         transform: scale(0.9)
+      }
+
+      #messages {
+        top: 80px;
+        right: 59%;
       }
 
       #br4 {
@@ -211,6 +225,7 @@
         <p id="num_ms">Morse sets: </p>
         <p id="num_attractors">Attractors: </p>
       </div>
+      <p id="messages">Invalid Interval</p>
       <div id="morse_graph" style="position: absolute; display: inline-block; transform: translate(-460px, 170px);">
       </div>
       <div id="myDiv" style="position: absolute; display: inline-block;">
