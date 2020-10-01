@@ -1,6 +1,6 @@
 // dsgrn_viz.js
 // Daniel Gameiro
-// 2020-08-30
+// 2020-10-01
 // MIT LICENSE
 
 var general_settings = {
@@ -22,7 +22,11 @@ var cell_complex_settings = {
   height: 700,
   no_ms_color: "#FFFFFF",
   showArrows: 5, // 0 = all, 5 = none
-  wireframe: 0 // 0 = all, 2 = none
+  wireframe: 0, // 0 = all, 2 = none
+  x_min: -1,
+  x_max: -1,
+  y_min: -1,
+  y_max: -1
 };
 var morse_graph_settings = {
   width: 550,
@@ -61,7 +65,11 @@ d3.select("#messages").style("display", "none");
 
 document.getElementById("arr_size").value = arrow_settings.factor;
 
-const cellComplexScale = (pt) => 50 + pt * 200;
+//const cellComplexScale = (pt) => 50 + pt * 200;
+
+const cellComplexXScale = (x) => 50 + ((x - cell_complex_settings.x_min) / (cell_complex_settings.x_max - cell_complex_settings.x_min)) * 600;
+const cellComplexYScale = (y) => 50 + ((cell_complex_settings.y_max - y) / (cell_complex_settings.y_max - cell_complex_settings.y_min)) * 600;
+
 const fillRange = (start, end) => Array(end - start + 1).fill().map((item, index) => start + index);
 var colorMap = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -112,6 +120,28 @@ function plot_param_graph(data) {
   var network = data.network;
 
   plot_network(network);
+
+  // find range of coords for cell complex
+  var x_min = complex.verts_coords[0][0], x_max = complex.verts_coords[0][0];
+  var y_min = complex.verts_coords[0][1], y_max = complex.verts_coords[0][1];
+  complex.verts_coords.forEach(vert => {
+    if (vert[0] > x_max) {
+      x_max = vert[0];
+    }
+    if (vert[0] < x_min) {
+      x_min = vert[0];
+    }
+    if (vert[1] > y_max) {
+      y_max = vert[1];
+    }
+    if (vert[1] < y_min) {
+      y_min = vert[1];
+    }
+  });
+  cell_complex_settings.x_max = x_max;
+  cell_complex_settings.x_min = x_min;
+  cell_complex_settings.y_max = y_max;
+  cell_complex_settings.y_min = y_min;
 
   arrow_settings.maxarrowsize = -1;
   general_settings.current_param = db[0].parameter;
@@ -381,8 +411,7 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
 
   const svg = d3.select("#myDiv").append("svg")
     .attr("height", cell_complex_settings.height)
-    .attr("width", cell_complex_settings.width)
-    .attr("transform", "translate(50, 50)");
+    .attr("width", cell_complex_settings.width);
 
   svg.append("defs").append("marker")
     .attr("id", "triangle")
@@ -471,8 +500,8 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
         var commonVert1 = verts_coords[commonVerts[0]];
         var commonVert2 = verts_coords[commonVerts[1]];
 
-        var xm = (cellComplexScale(commonVert1[0]) + cellComplexScale(commonVert2[0])) / 2;
-        var ym = (cellComplexScale(commonVert1[1]) + cellComplexScale(commonVert2[1])) / 2;
+        var xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
+        var ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
 
         var d1 = Math.sqrt((xm - x1) ** 2 + (ym - y1) ** 2);
         var d2 = Math.sqrt((xm - x2) ** 2 + (ym - y2) ** 2);
@@ -495,18 +524,18 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
     if (dCell.cell_dim == 0) {
       svg.append("circle")
         .attr("r", cell_complex_settings.vertSize + 1.0)
-        .attr("cx", cellComplexScale(verts_coords[dCell.cell_verts[0]][0]))
-        .attr("cy", cellComplexScale(verts_coords[dCell.cell_verts[0]][1]))
+        .attr("cx", cellComplexXScale(verts_coords[dCell.cell_verts[0]][0]))
+        .attr("cy", cellComplexYScale(verts_coords[dCell.cell_verts[0]][1]))
         .attr("fill", "black")
         .attr("class", "cell_dim0")
         .attr("id", `cell${dCell.cell_index}`);
     }
     else if (dCell.cell_dim == 1) {
       svg.append("line")
-        .attr("x1", cellComplexScale(verts_coords[dCell.cell_verts[0]][0]))
-        .attr("x2", cellComplexScale(verts_coords[dCell.cell_verts[1]][0]))
-        .attr("y1", cellComplexScale(verts_coords[dCell.cell_verts[0]][1]))
-        .attr("y2", cellComplexScale(verts_coords[dCell.cell_verts[1]][1]))
+        .attr("x1", cellComplexXScale(verts_coords[dCell.cell_verts[0]][0]))
+        .attr("x2", cellComplexXScale(verts_coords[dCell.cell_verts[1]][0]))
+        .attr("y1", cellComplexYScale(verts_coords[dCell.cell_verts[0]][1]))
+        .attr("y2", cellComplexYScale(verts_coords[dCell.cell_verts[1]][1]))
         .attr("stroke", "black")
         .attr("stroke-width", cell_complex_settings.lineWidth)
         .attr("class", "cell_dim1")
@@ -516,7 +545,7 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
       var points = "";
 
       dCell.cell_verts.forEach(dVert => {
-        points += (cellComplexScale(verts_coords[dVert][0])) + " " + (cellComplexScale(verts_coords[dVert][1])) + ", ";
+        points += (cellComplexXScale(verts_coords[dVert][0])) + " " + (cellComplexYScale(verts_coords[dVert][1])) + ", ";
       });
 
       points = points.substring(0, points.length - 2);
@@ -556,13 +585,13 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
 
     var xCenter = 0;
     cell.cell_verts.forEach(vert => {
-      xCenter += cellComplexScale(verts_coords[vert][0]);
+      xCenter += cellComplexXScale(verts_coords[vert][0]);
     });
     xCenter = xCenter / cell.cell_verts.length;
 
     var yCenter = 0;
     cell.cell_verts.forEach(vert => {
-      yCenter += cellComplexScale(verts_coords[vert][1]);
+      yCenter += cellComplexYScale(verts_coords[vert][1]);
     });
     yCenter = yCenter / cell.cell_verts.length;
 
@@ -587,8 +616,8 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
     var commonVert1 = verts_coords[commonVerts[0]];
     var commonVert2 = verts_coords[commonVerts[1]];
 
-    var xm = (cellComplexScale(commonVert1[0]) + cellComplexScale(commonVert2[0])) / 2;
-    var ym = (cellComplexScale(commonVert1[1]) + cellComplexScale(commonVert2[1])) / 2;
+    var xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
+    var ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
 
     var tm = 0;
 
@@ -628,8 +657,8 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
     var commonVert1 = verts_coords[commonVerts[0]];
     var commonVert2 = verts_coords[commonVerts[1]];
 
-    var xm = (cellComplexScale(commonVert1[0]) + cellComplexScale(commonVert2[0])) / 2;
-    var ym = (cellComplexScale(commonVert1[1]) + cellComplexScale(commonVert2[1])) / 2;
+    var xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
+    var ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
 
     var d1 = Math.sqrt((xm - x1) ** 2 + (ym - y1) ** 2);
     var d2 = Math.sqrt((xm - x2) ** 2 + (ym - y2) ** 2);
@@ -1121,7 +1150,7 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
     }
   };
 
-  d3.select("#myDiv").style("transform", "scale(1,-1)");
+  //d3.select("#myDiv").style("transform", "scale(1,-1)");
 
   var face_alpha = document.getElementById("face_alpha");
 
@@ -2843,5 +2872,3 @@ colormap_select.addEventListener("change", e => {
 
   plot_param_graph(general_settings.current_file_data);
 });
-
-
