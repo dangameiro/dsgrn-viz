@@ -497,11 +497,32 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
 
         var commonVerts = cellFromVerts.filter(value => cellToVerts.includes(value));
 
-        var commonVert1 = verts_coords[commonVerts[0]];
-        var commonVert2 = verts_coords[commonVerts[1]];
+        var xm, ym;
 
-        var xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
-        var ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
+        if (commonVerts.length == 2) {
+          var commonVert1 = verts_coords[commonVerts[0]];
+          var commonVert2 = verts_coords[commonVerts[1]];
+
+          xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
+          ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
+        }
+        else if (commonVerts.length == 1) {
+          var commonVert1 = verts_coords[commonVerts[0]];
+
+          xm = cellComplexXScale(commonVert1[0]);
+          ym = cellComplexYScale(commonVert1[1]);
+        }
+        else if (commonVerts.length == 0) {
+          console.log("Error: edge between non adjacent cells in STG");
+        }
+        else {
+          commonVerts.forEach(v => {
+            xm += cellComplexXScale(verts_coords[v][0]);
+            ym += cellComplexXScale(verts_coords[v][1]);
+          });
+          xm /= commonVerts.length;
+          ym /= commonVerts.length;
+        }
 
         var d1 = Math.sqrt((xm - x1) ** 2 + (ym - y1) ** 2);
         var d2 = Math.sqrt((xm - x2) ** 2 + (ym - y2) ** 2);
@@ -613,11 +634,32 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
 
     var commonVerts = cellFromVerts.filter(value => cellToVerts.includes(value));
 
-    var commonVert1 = verts_coords[commonVerts[0]];
-    var commonVert2 = verts_coords[commonVerts[1]];
+    var xm, ym;
 
-    var xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
-    var ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
+    if (commonVerts.length == 2) {
+      var commonVert1 = verts_coords[commonVerts[0]];
+      var commonVert2 = verts_coords[commonVerts[1]];
+
+      xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
+      ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
+    }
+    else if (commonVerts.length == 1) {
+      var commonVert1 = verts_coords[commonVerts[0]];
+
+      xm = cellComplexXScale(commonVert1[0]);
+      ym = cellComplexYScale(commonVert1[1]);
+    }
+    else if (commonVerts.length == 0) {
+      console.log("Error: edge between non adjacent cells in STG");
+    }
+    else {
+      commonVerts.forEach(v => {
+        xm += cellComplexXScale(verts_coords[v][0]);
+        ym += cellComplexXScale(verts_coords[v][1]);
+      });
+      xm /= commonVerts.length;
+      ym /= commonVerts.length;
+    }
 
     var tm = 0;
 
@@ -654,11 +696,32 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
 
     var commonVerts = cellFromVerts.filter(value => cellToVerts.includes(value));
 
-    var commonVert1 = verts_coords[commonVerts[0]];
-    var commonVert2 = verts_coords[commonVerts[1]];
+    var xm, ym;
 
-    var xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
-    var ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
+    if (commonVerts.length == 2) {
+      var commonVert1 = verts_coords[commonVerts[0]];
+      var commonVert2 = verts_coords[commonVerts[1]];
+
+      xm = (cellComplexXScale(commonVert1[0]) + cellComplexXScale(commonVert2[0])) / 2;
+      ym = (cellComplexYScale(commonVert1[1]) + cellComplexYScale(commonVert2[1])) / 2;
+    }
+    else if (commonVerts.length == 1) {
+      var commonVert1 = verts_coords[commonVerts[0]];
+
+      xm = cellComplexXScale(commonVert1[0]);
+      ym = cellComplexYScale(commonVert1[1]);
+    }
+    else if (commonVerts.length == 0) {
+      console.log("Error: edge between non adjacent cells in STG");
+    }
+    else {
+      commonVerts.forEach(v => {
+        xm += cellComplexXScale(verts_coords[v][0]);
+        ym += cellComplexXScale(verts_coords[v][1]);
+      });
+      xm /= commonVerts.length;
+      ym /= commonVerts.length;
+    }
 
     var d1 = Math.sqrt((xm - x1) ** 2 + (ym - y1) ** 2);
     var d2 = Math.sqrt((xm - x2) ** 2 + (ym - y2) ** 2);
