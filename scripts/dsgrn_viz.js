@@ -194,7 +194,10 @@ function plot_param_graph(data) {
 
   var circs = node.append("circle")
     .attr("r", param_graph_settings.r)
-    .attr("fill", param_graph_settings.nodeColor);
+    .attr("fill", d => {
+      if (d.color != "") { return d.color; }
+      else { return param_graph_settings.nodeColor; }
+    });
 
   var labels = node.append("text")
     .text(d => d.id)
@@ -295,7 +298,10 @@ function plot_param_graph(data) {
           .attr("r", param_graph_settings.r);
       }
       else {
-        d3.select(circ).attr("fill", param_graph_settings.nodeColor)
+        d3.select(circ).attr("fill", d => {
+          if (d.color != "") { return d.color; }
+          else { return param_graph_settings.nodeColor; }
+        })
           .attr("r", param_graph_settings.r);
       }
     });
