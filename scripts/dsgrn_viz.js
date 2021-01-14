@@ -61,6 +61,8 @@ var colorMaps = {
   colorblind1: ["#a50026", "#d73027", "#f46d43", "#fdae61", "#fee090", "#ffffbf", "#e0f3f8", "#abd9e9", "#74add1", "#4575b4", "#313695"]
 };
 
+var initial_file_name = d3.select("#fileSelect option")._groups[0][0].value;
+
 d3.select("#messages").style("display", "none");
 
 document.getElementById("arr_size").value = arrow_settings.factor;
@@ -2773,7 +2775,7 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
 /////////////////////////////////////////////////  Interactions  ///////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-d3.json("data/morse_graph_database_2D.json").then(d => {
+d3.json(initial_file_name).then(d => {
   plot_param_graph(d);
   general_settings.current_file_data = d;
 });
