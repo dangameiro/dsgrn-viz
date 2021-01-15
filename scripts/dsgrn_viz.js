@@ -34,9 +34,10 @@ var morse_graph_settings = {
   moveDown: -50,
   node_rx: 50,
   node_ry: 16,
-  label_font_size: 15,
+  label_font_size: 13,
   opacity: 0.8,
   position_scale: 0.05,
+  arrow_curvature: 0.3,
   selectMethod: 0 // 0 = single, 1 = multiple, 2 = interval
 };
 var arrow_settings = {
@@ -884,23 +885,78 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
   var maxDepth = Math.max.apply(Math, nodeRanks);
   var ySize = morse_graph_settings.height / (maxDepth + 1);
 
-  for (var i = 0; i <= maxDepth; i++) {
+  if (maxDepth == 1) {
     var thisRank = [];
 
     for (var j = 0; j < nodeRanks.length; j++) {
-      if (nodeRanks[j] == i) {
+      if (nodeRanks[j] == 1) {
         thisRank.push(j);
       }
     }
 
     var xSize = morse_graph_settings.width / thisRank.length;
 
-    thisRank.forEach(nodeIndex => {
-      var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
-      var y = (maxDepth - i) * ySize + ySize / 2;
+    if (thisRank.length == 2) {
+      drawNode(thisRank[0], morse_graph_settings.width / 2 - 100, morse_graph_settings.height / 2 - 50);
+      drawNode(thisRank[1], morse_graph_settings.width / 2 + 100, morse_graph_settings.height / 2 - 50);
+    }
+    else {
+      thisRank.forEach(nodeIndex => {
+        var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
+        var y = morse_graph_settings.height / 2 - 50;
 
-      drawNode(nodeIndex, x, y);
-    });
+        drawNode(nodeIndex, x, y);
+      });
+    }
+
+    var thisRank = [];
+
+    for (var j = 0; j < nodeRanks.length; j++) {
+      if (nodeRanks[j] == 0) {
+        thisRank.push(j);
+      }
+    }
+
+    var xSize = morse_graph_settings.width / thisRank.length;
+
+    if (thisRank.length == 2) {
+      drawNode(thisRank[0], morse_graph_settings.width / 2 - 100, morse_graph_settings.height / 2 + 50);
+      drawNode(thisRank[1], morse_graph_settings.width / 2 + 100, morse_graph_settings.height / 2 + 50);
+    }
+    else {
+      thisRank.forEach(nodeIndex => {
+        var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
+        var y = morse_graph_settings.height / 2 + 50;
+
+        drawNode(nodeIndex, x, y);
+      });
+    }
+  }
+  else {
+    for (var i = 0; i <= maxDepth; i++) {
+      var thisRank = [];
+
+      for (var j = 0; j < nodeRanks.length; j++) {
+        if (nodeRanks[j] == i) {
+          thisRank.push(j);
+        }
+      }
+
+      var xSize = morse_graph_settings.width / thisRank.length;
+
+      if (thisRank.length == 2) {
+        drawNode(thisRank[0], morse_graph_settings.width / 2 - 100, (maxDepth - i) * ySize + ySize / 2);
+        drawNode(thisRank[1], morse_graph_settings.width / 2 + 100, (maxDepth - i) * ySize + ySize / 2);
+      }
+      else {
+        thisRank.forEach(nodeIndex => {
+          var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
+          var y = (maxDepth - i) * ySize + ySize / 2;
+
+          drawNode(nodeIndex, x, y);
+        });
+      }
+    }
   }
 
   cellColors();
@@ -908,7 +964,7 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
   /////////////////
   // DRAW ARROWS //
   /////////////////
-  function drawArrowMorse(x1, y1, x2, y2, cellFromInd, cellToInd) {
+  function drawArrowMorse(x1, y1, xMid, yMid, x2, y2, cellFromInd, cellToInd) {
 
     var triSize = arrow_settings.tip_dims / 2 * arrow_settings.line_width;
     var arrowLength = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
@@ -916,11 +972,8 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
     var xFinal = (1 - t0) * x1 + t0 * x2;
     var yFinal = (1 - t0) * y1 + t0 * y2;
 
-    graphSVG.append("line")
-      .attr("x1", x1)
-      .attr("y1", y1)
-      .attr("x2", xFinal)
-      .attr("y2", yFinal)
+    graphSVG.append("path")
+      .attr("d", `M ${x1} ${y1} Q ${xMid} ${yMid} ${xFinal} ${yFinal}`)
       .attr("id", `${cellFromInd}arrow${cellToInd}`)
       .attr("stroke-width", arrow_settings.line_width)
       .attr("stroke", arrow_settings.single_color)
@@ -960,7 +1013,104 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
       var x2final = x2 + arrowPosChange;
       var y2final = y2 - morse_graph_settings.node_ry;
 
-      drawArrowMorse(x1final, y1final, x2final, y2final, `morsegraph${graphNode.node}`, edgeTo);
+      var edgeToObj;
+
+      morseGraph.forEach(toNode => {
+        if (toNode.node == edgeTo) {
+          edgeToObj = toNode;
+        }
+      });
+
+      var xMid;
+      var yMid;
+
+      if ((graphNode.rank - edgeToObj.rank) > 1) {
+        var xMidTemp = (x1final + x2final) / 2;
+        var targetRank = edgeToObj.rank + 1;
+        var targetRankNodes = [];
+        var xTargetNodes = [];
+
+        morseGraph.forEach(node => {
+          if (node.rank == targetRank) {
+            targetRankNodes.push(d3.select(`#node${node.node}`));
+          }
+        });
+
+        targetRankNodes.forEach(n => {
+          xTargetNodes.push(n._groups[0][0].getAttribute("cx"));
+          yMid = n._groups[0][0].getAttribute("cy");
+        });
+
+        var nearestNode1, nearestNode2;
+
+        if (xTargetNodes.length == 1) {
+          if (x2final > x1final) {
+            xMid = (morse_graph_settings.width + parseInt(xTargetNodes[0])) / 2;
+          }
+          else {
+            xMid = xTargetNodes[0] / 2;
+          }
+        }
+        else if (xTargetNodes.length == 2) {
+          nearestNode1 = xTargetNodes[0];
+          nearestNode2 = xTargetNodes[1];
+          xMid = (parseInt(nearestNode2) + parseInt(nearestNode1)) / 2;
+        }
+        else if (xTargetNodes.length > 2) {
+          nearestNode1 = xTargetNodes[0];
+          nearestNode2 = xTargetNodes[1];
+          for (var i = 2; i < xTargetNodes.length; i++) {
+            if (Math.abs(xTargetNodes[i] - xMidTemp) < Math.abs(nearestNode1 - xMidTemp) && Math.abs(xTargetNodes[i] - xMidTemp) < Math.abs(nearestNode2 - xMidTemp)) {
+              if (Math.abs(nearestNode1 - xMidTemp) < Math.abs(nearestNode2 - xMidTemp)) {
+                nearestNode2 = xTargetNodes[i];
+              }
+              else {
+                nearestNode1 = xTargetNodes[i];
+              }
+            }
+            else if (Math.abs(xTargetNodes[i] - xMidTemp) <= Math.abs(nearestNode1 - xMidTemp) && Math.abs(xTargetNodes[i] - xMidTemp) > Math.abs(nearestNode2 - xMidTemp)) {
+              nearestNode1 = xTargetNodes[i];
+            }
+            else if (Math.abs(xTargetNodes[i] - xMidTemp) > Math.abs(nearestNode1 - xMidTemp) && Math.abs(xTargetNodes[i] - xMidTemp) <= Math.abs(nearestNode2 - xMidTemp)) {
+              nearestNode2 = xTargetNodes[i];
+            }
+          }
+
+          xMid = (parseInt(nearestNode2) + parseInt(nearestNode1)) / 2;
+        }
+        else {
+          console.log("error: no nodes at target rank");
+        }
+
+        if (Math.abs(x1final - xMid) <= 1 && Math.abs(x2final - xMid) <= 1) {
+          if (x2final > morse_graph_settings.width / 2) {
+            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+          else {
+            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+        }
+      }
+      else {
+        yMid = (y1final + y2final) / 2;
+
+        if (x1final > x2final) {
+          xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+        }
+        else if (x1final < x2final) {
+          xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+        }
+        else {
+          if (x2final > morse_graph_settings.width / 2) {
+            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+          else {
+            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+        }
+      }
+
+      drawArrowMorse(x1final, y1final, xMid, yMid, x2final, y2final, `morsegraph${graphNode.node}`, edgeTo);
     });
   });
 
@@ -2040,26 +2190,81 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
   var maxDepth = Math.max.apply(Math, nodeRanks);
   var ySize = morse_graph_settings.height / (maxDepth + 1);
 
-  for (var i = 0; i <= maxDepth; i++) {
+  if (maxDepth == 1) {
     var thisRank = [];
 
     for (var j = 0; j < nodeRanks.length; j++) {
-      if (nodeRanks[j] == i) {
+      if (nodeRanks[j] == 1) {
         thisRank.push(j);
       }
     }
 
     var xSize = morse_graph_settings.width / thisRank.length;
 
-    thisRank.forEach(nodeIndex => {
-      var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
-      var y = (maxDepth - i) * ySize + ySize / 2;
+    if (thisRank.length == 2) {
+      drawNode(thisRank[0], morse_graph_settings.width / 2 - 100, morse_graph_settings.height / 2 - 50);
+      drawNode(thisRank[1], morse_graph_settings.width / 2 + 100, morse_graph_settings.height / 2 - 50);
+    }
+    else {
+      thisRank.forEach(nodeIndex => {
+        var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
+        var y = morse_graph_settings.height / 2 - 50;
 
-      drawNode(nodeIndex, x, y);
-    });
+        drawNode(nodeIndex, x, y);
+      });
+    }
+
+    var thisRank = [];
+
+    for (var j = 0; j < nodeRanks.length; j++) {
+      if (nodeRanks[j] == 0) {
+        thisRank.push(j);
+      }
+    }
+
+    var xSize = morse_graph_settings.width / thisRank.length;
+
+    if (thisRank.length == 2) {
+      drawNode(thisRank[0], morse_graph_settings.width / 2 - 100, morse_graph_settings.height / 2 + 50);
+      drawNode(thisRank[1], morse_graph_settings.width / 2 + 100, morse_graph_settings.height / 2 + 50);
+    }
+    else {
+      thisRank.forEach(nodeIndex => {
+        var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
+        var y = morse_graph_settings.height / 2 + 50;
+
+        drawNode(nodeIndex, x, y);
+      });
+    }
+  }
+  else {
+    for (var i = 0; i <= maxDepth; i++) {
+      var thisRank = [];
+
+      for (var j = 0; j < nodeRanks.length; j++) {
+        if (nodeRanks[j] == i) {
+          thisRank.push(j);
+        }
+      }
+
+      var xSize = morse_graph_settings.width / thisRank.length;
+
+      if (thisRank.length == 2) {
+        drawNode(thisRank[0], morse_graph_settings.width / 2 - 100, (maxDepth - i) * ySize + ySize / 2);
+        drawNode(thisRank[1], morse_graph_settings.width / 2 + 100, (maxDepth - i) * ySize + ySize / 2);
+      }
+      else {
+        thisRank.forEach(nodeIndex => {
+          var x = thisRank.indexOf(nodeIndex) * xSize + xSize / 2;
+          var y = (maxDepth - i) * ySize + ySize / 2;
+
+          drawNode(nodeIndex, x, y);
+        });
+      }
+    }
   }
 
-  function drawArrowMorse(x1, y1, x2, y2, cellFromInd, cellToInd) {
+  function drawArrowMorse(x1, y1, xMid, yMid, x2, y2, cellFromInd, cellToInd) {
 
     var triSize = arrow_settings.tip_dims / 2 * arrow_settings.line_width;
     var arrowLength = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
@@ -2067,11 +2272,8 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
     var xFinal = (1 - t0) * x1 + t0 * x2;
     var yFinal = (1 - t0) * y1 + t0 * y2;
 
-    graphSVG.append("line")
-      .attr("x1", x1)
-      .attr("y1", y1)
-      .attr("x2", xFinal)
-      .attr("y2", yFinal)
+    graphSVG.append("path")
+      .attr("d", `M ${x1} ${y1} Q ${xMid} ${yMid} ${xFinal} ${yFinal}`)
       .attr("id", `${cellFromInd}arrow${cellToInd}`)
       .attr("stroke-width", arrow_settings.line_width)
       .attr("stroke", arrow_settings.single_color)
@@ -2155,7 +2357,104 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
       var x2final = x2 + arrowPosChange;
       var y2final = y2 - morse_graph_settings.node_ry;
 
-      drawArrowMorse(x1final, y1final, x2final, y2final, `morsegraph${graphNode.node}`, edgeTo);
+      var edgeToObj;
+
+      morseGraph.forEach(toNode => {
+        if (toNode.node == edgeTo) {
+          edgeToObj = toNode;
+        }
+      });
+
+      var xMid;
+      var yMid;
+
+      if ((graphNode.rank - edgeToObj.rank) > 1) {
+        var xMidTemp = (x1final + x2final) / 2;
+        var targetRank = edgeToObj.rank + 1;
+        var targetRankNodes = [];
+        var xTargetNodes = [];
+
+        morseGraph.forEach(node => {
+          if (node.rank == targetRank) {
+            targetRankNodes.push(d3.select(`#node${node.node}`));
+          }
+        });
+
+        targetRankNodes.forEach(n => {
+          xTargetNodes.push(n._groups[0][0].getAttribute("cx"));
+          yMid = n._groups[0][0].getAttribute("cy");
+        });
+
+        var nearestNode1, nearestNode2;
+
+        if (xTargetNodes.length == 1) {
+          if (x2final > x1final) {
+            xMid = (morse_graph_settings.width + parseInt(xTargetNodes[0])) / 2;
+          }
+          else {
+            xMid = xTargetNodes[0] / 2;
+          }
+        }
+        else if (xTargetNodes.length == 2) {
+          nearestNode1 = xTargetNodes[0];
+          nearestNode2 = xTargetNodes[1];
+          xMid = (parseInt(nearestNode2) + parseInt(nearestNode1)) / 2;
+        }
+        else if (xTargetNodes.length > 2) {
+          nearestNode1 = xTargetNodes[0];
+          nearestNode2 = xTargetNodes[1];
+          for (var i = 2; i < xTargetNodes.length; i++) {
+            if (Math.abs(xTargetNodes[i] - xMidTemp) < Math.abs(nearestNode1 - xMidTemp) && Math.abs(xTargetNodes[i] - xMidTemp) < Math.abs(nearestNode2 - xMidTemp)) {
+              if (Math.abs(nearestNode1 - xMidTemp) < Math.abs(nearestNode2 - xMidTemp)) {
+                nearestNode2 = xTargetNodes[i];
+              }
+              else {
+                nearestNode1 = xTargetNodes[i];
+              }
+            }
+            else if (Math.abs(xTargetNodes[i] - xMidTemp) <= Math.abs(nearestNode1 - xMidTemp) && Math.abs(xTargetNodes[i] - xMidTemp) > Math.abs(nearestNode2 - xMidTemp)) {
+              nearestNode1 = xTargetNodes[i];
+            }
+            else if (Math.abs(xTargetNodes[i] - xMidTemp) > Math.abs(nearestNode1 - xMidTemp) && Math.abs(xTargetNodes[i] - xMidTemp) <= Math.abs(nearestNode2 - xMidTemp)) {
+              nearestNode2 = xTargetNodes[i];
+            }
+          }
+
+          xMid = (parseInt(nearestNode2) + parseInt(nearestNode1)) / 2;
+        }
+        else {
+          console.log("error: no nodes at target rank");
+        }
+
+        if (Math.abs(x1final - xMid) <= 1 && Math.abs(x2final - xMid) <= 1) {
+          if (x2final > morse_graph_settings.width / 2) {
+            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+          else {
+            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+        }
+      }
+      else {
+        yMid = (y1final + y2final) / 2;
+
+        if (x1final > x2final) {
+          xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+        }
+        else if (x1final < x2final) {
+          xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+        }
+        else {
+          if (x2final > morse_graph_settings.width / 2) {
+            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+          else {
+            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+          }
+        }
+      }
+
+      drawArrowMorse(x1final, y1final, xMid, yMid, x2final, y2final, `morsegraph${graphNode.node}`, edgeTo);
     });
   });
 
