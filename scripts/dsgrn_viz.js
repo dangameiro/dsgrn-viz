@@ -325,8 +325,15 @@ function plot_param_graph(data) {
       }
     });
 
+    var ineq = "";
+
+    e.inequalities.forEach(i => {
+      ineq += "<div class=\"ineq\">" + i + "</div>";
+    });
+
     document.getElementById("num_ms").innerHTML = `Morse sets: ${curr_mg.length}`;
     document.getElementById("num_attractors").innerHTML = `Attractors: ${attractor_counter}`;
+    document.getElementById("inequalities").innerHTML = `Inequalities: ${ineq}`;
 
     if (complex.dimension == 2) {
       loadJSON_2D(complex, curr_mg, curr_ms, curr_stg);
@@ -1102,10 +1109,10 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
         }
         else {
           if (x2final > morse_graph_settings.width / 2) {
-            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature / 5;
           }
           else {
-            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature / 5;
           }
         }
       }
@@ -2446,10 +2453,10 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
         }
         else {
           if (x2final > morse_graph_settings.width / 2) {
-            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+            xMid = (x1final + x2final) / 2 + Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature / 5;
           }
           else {
-            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature;
+            xMid = (x1final + x2final) / 2 - Math.sqrt(Math.pow((y2final - y1final), 2) + Math.pow((x2final - x1final), 2)) * morse_graph_settings.arrow_curvature / 5;
           }
         }
       }
