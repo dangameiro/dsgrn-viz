@@ -11,13 +11,16 @@ var general_settings = {
   current_dim: -1,
   current_file_data: {},
   user_file_data: [],
-  current_param: -1
+  current_param: -1,
+  has_eq_cells: false
 };
 var cell_complex_settings = {
   div_name: "myDiv",
   opacity: 0.5,
   vertSize: 2.2,
   lineWidth: 2.2,
+  self_arrow_size: 8,
+  eq_cell_color: "crimson",
   width: 700,
   height: 700,
   no_ms_color: "#FFFFFF",
@@ -122,6 +125,8 @@ function plot_param_graph(data) {
   var db = data.dynamics_database;
   var network = data.network;
 
+  if (db[0].equilibrium_cells != undefined && db[0].equilibrium_cells.length > 0) general_settings.has_eq_cells = true;
+
   plot_network(network);
 
   // find range of coords for cell complex
@@ -152,6 +157,8 @@ function plot_param_graph(data) {
   var curr_mg = db.find(dt => dt.parameter == general_settings.current_param).morse_graph;
   var curr_ms = db.find(dt => dt.parameter == general_settings.current_param).morse_sets;
   var curr_stg = db.find(dt => dt.parameter == general_settings.current_param).stg;
+  var curr_eqCells;
+  if (general_settings.has_eq_cells) curr_eqCells = db.find(dt => dt.parameter == general_settings.current_param).equilibrium_cells;
 
   var graphLayout = d3.forceSimulation(graph.nodes)
     .force("charge", d3.forceManyBody().strength(-500))
@@ -316,6 +323,7 @@ function plot_param_graph(data) {
     curr_mg = db.find(dt => dt.parameter == general_settings.current_param).morse_graph;
     curr_ms = db.find(dt => dt.parameter == general_settings.current_param).morse_sets;
     curr_stg = db.find(dt => dt.parameter == general_settings.current_param).stg;
+    if (general_settings.has_eq_cells) curr_eqCells = db.find(dt => dt.parameter == general_settings.current_param).equilibrium_cells;
 
     var attractor_counter = 0;
 
@@ -336,10 +344,10 @@ function plot_param_graph(data) {
     document.getElementById("inequalities").innerHTML = `Inequalities: ${ineq}`;
 
     if (complex.dimension == 2) {
-      loadJSON_2D(complex, curr_mg, curr_ms, curr_stg);
+      loadJSON_2D(complex, curr_mg, curr_ms, curr_stg, curr_eqCells);
     }
     else {
-      loadJSON_3D(complex, curr_mg, curr_ms, curr_stg);
+      loadJSON_3D(complex, curr_mg, curr_ms, curr_stg, curr_eqCells);
     }
   }
 
@@ -400,7 +408,7 @@ function plot_param_graph(data) {
 ///////////////////////////////////////////////////////  2D  ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
+function loadJSON_2D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
 
   general_settings.current_dim = 2;
   document.getElementById("space_dim_selected").innerHTML = `Space dimension: 2`;
@@ -804,7 +812,7 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
       .attr("cx", xCenter)
       .attr("cy", yCenter)
       .attr("class", "selfArrow")
-      .attr("r", 6);
+      .attr("r", cell_complex_settings.self_arrow_size);
   }
 
   function plotArrows() {
@@ -1507,13 +1515,43 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg) {
       d3.selectAll(".cell_dim0").attr("r", cell_complex_settings.vertSize + 1.0);
     }
   });
+
+  if (general_settings.has_eq_cells) {
+    d_eqCells.forEach(cell_ind => {
+      var cx = 0, cy = 0;
+      var cell;
+      cells.forEach(c => {
+        if (c.cell_index == cell_ind) {
+          cell = c;
+          return;
+        }
+      });
+
+      var verts = cell.cell_verts;
+      verts.forEach(v => {
+        cx += cellComplexXScale(verts_coords[v][0]);
+        cy += cellComplexYScale(verts_coords[v][1]);
+      });
+
+      cx /= verts.length;
+      cy /= verts.length;
+
+      svg.append("circle")
+        .attr("r", cell_complex_settings.self_arrow_size)
+        .attr("cx", cx)
+        .attr("cy", cy)
+        .attr("fill", cell_complex_settings.eq_cell_color)
+        .attr("class", "eq_cell")
+        .attr("id", `eq_cell${cell_ind}`);
+    });
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////  3D  ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
+function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
 
   general_settings.current_dim = 3;
   document.getElementById("space_dim_selected").innerHTML = `Space dimension: 3`;
@@ -2061,6 +2099,55 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
       var cell;
       face_3d.forEach(c => {
         if (c.cell_index == parseInt(arr)) {
+          cell = c;
+        }
+      });
+
+      var cell_verts = cell.cell_verts;
+      var x_mid = 0, y_mid = 0, z_mid = 0;
+
+      cell_verts.forEach(v => {
+        x_mid += verts_coords[v][0];
+        y_mid += verts_coords[v][1];
+        z_mid += verts_coords[v][2];
+      });
+
+      x_mid /= cell_verts.length;
+      y_mid /= cell_verts.length;
+      z_mid /= cell_verts.length;
+
+      res_data.x.push(x_mid);
+      res_data.y.push(y_mid);
+      res_data.z.push(z_mid);
+
+    });
+
+    return res_data;
+  }
+
+  function createEqCellData(cellInds) {
+
+    var res_data = {
+      x: [],
+      y: [],
+      z: [],
+      lighting: {
+        ambient: 1,
+        diffuse: 1,
+        specular: 2,
+        roughness: 1,
+        fresnel: 5
+      },
+      mode: 'markers',
+      hoverinfo: "none",
+      marker: { size: arrow_settings.self_arrow_size, color: cell_complex_settings.eq_cell_color },
+      type: 'scatter3d'
+    };
+
+    cellInds.forEach(ind => {
+      var cell;
+      cells.forEach(c => {
+        if (c.cell_index == parseInt(ind)) {
           cell = c;
         }
       });
@@ -2905,6 +2992,11 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
     //Plotly.plot(div, dim0data, layout1);
     Plotly.plot(cell_complex_settings.div_name, dim2data, layout1);
     Plotly.plot(cell_complex_settings.div_name, dim1data, layout1);
+
+    if (general_settings.has_eq_cells) {
+      var eqCellData = createEqCellData(d_eqCells);
+      Plotly.plot(cell_complex_settings.div_name, [eqCellData], layout1);
+    }
   }
 
   plotCells(cells);
@@ -3062,19 +3154,6 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg) {
       plotCells(cells);
     }
   });
-
-  // var simulateClick = function (elem) {
-  //   var evt = new MouseEvent('click', {
-  //     bubbles: true,
-  //     cancelable: true,
-  //     view: window
-  //   });
-  //   var canceled = !elem.dispatchEvent(evt);
-  // };
-
-  // window.setTimeout(simulateClick(document.getElementById("node0")), 5000);
-  // window.setTimeout(simulateClick(document.getElementById("node0")), 2000);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3089,6 +3168,7 @@ d3.json(initial_file_name).then(d => {
 var file_selector = document.getElementById("myfile");
 
 file_selector.addEventListener("change", e => {
+  general_settings.has_eq_cells = false;
 
   var fr = new FileReader();
   fr.onload = function () {
@@ -3117,6 +3197,7 @@ param_node.addEventListener("change", e => {
 var fileSelect = document.getElementById("fileSelect");
 
 fileSelect.addEventListener("change", e => {
+  general_settings.has_eq_cells = false;
   if (e.target.value == "user") {
     general_settings.current_file_data = general_settings.user_file_data[0];
     if (general_settings.user_file_data.length == 0) {
