@@ -1,6 +1,6 @@
 // dsgrn_viz.js
 // Daniel Gameiro
-// 2020-10-01
+// 2021-07-10
 // MIT LICENSE
 
 var general_settings = {
@@ -124,6 +124,9 @@ function plot_param_graph(data) {
   var complex = data.complex;
   var db = data.dynamics_database;
   var network = data.network;
+
+  var param_dim = network.parameter_dim;
+  document.getElementById("param_dim_selected").innerHTML = `Parameter dimension: ${param_dim}`;
 
   if (db[0].equilibrium_cells != undefined && db[0].equilibrium_cells.length > 0) general_settings.has_eq_cells = true;
 
@@ -411,7 +414,7 @@ function plot_param_graph(data) {
 function loadJSON_2D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
 
   general_settings.current_dim = 2;
-  document.getElementById("space_dim_selected").innerHTML = `Space dimension: 2`;
+  document.getElementById("space_dim_selected").innerHTML = `Phase dimension: 2`;
 
   document.getElementById("morse_graph").innerHTML = "";
   document.getElementById("myDiv").innerHTML = "";
@@ -1554,7 +1557,7 @@ function loadJSON_2D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
 function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
 
   general_settings.current_dim = 3;
-  document.getElementById("space_dim_selected").innerHTML = `Space dimension: 3`;
+  document.getElementById("space_dim_selected").innerHTML = `Phase dimension: 3`;
 
   d3.select("#myDiv").style("transform", "scale(1,1)");
 
