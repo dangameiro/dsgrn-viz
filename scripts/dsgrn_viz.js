@@ -128,7 +128,7 @@ function plot_param_graph(data) {
   var param_dim = network.parameter_dim;
   document.getElementById("param_dim_selected").innerHTML = `Parameter dimension: ${param_dim}`;
 
-  if (db[0].equilibrium_cells != undefined && db[0].equilibrium_cells.length > 0) general_settings.has_eq_cells = true;
+  if (db[0].equilibrium_cells != undefined) general_settings.has_eq_cells = true;
 
   plot_network(network);
 
