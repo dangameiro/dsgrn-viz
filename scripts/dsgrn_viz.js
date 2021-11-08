@@ -2599,7 +2599,7 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
           backgroundcolor: "rgb(200, 200, 230)",
           gridcolor: "rgb(255, 255, 255)",
           zerolinecolor: "rgb(255, 255, 255)",
-          ticktext: ['', '', '', '', '', '', '', '', ''],
+          ticktext: ['0', '', '1', '', '2', '', '3', '', '4'],
           tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4],
           showbackground: true,
           title: 'x'
@@ -2608,7 +2608,7 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
           backgroundcolor: "rgb(200, 200, 230)",
           gridcolor: "rgb(255, 255, 255)",
           zerolinecolor: "rgb(255, 255, 255)",
-          ticktext: ['', '', '', '', '', '', '', '', ''],
+          ticktext: ['0', '', '1', '', '2', '', '3', '', '4'],
           tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4],
           showbackground: true,
           title: 'y'
@@ -2617,14 +2617,11 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
           backgroundcolor: "rgb(200, 200, 230)",
           gridcolor: "rgb(255, 255, 255)",
           zerolinecolor: "rgb(255, 255, 255)",
-          ticktext: ['', '', '', '', '', '', '', '', ''],
+          ticktext: ['', '', '1', '', '2', '', '3', '', '4'],
           tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4],
           showbackground: true,
           title: 'z'
         }
-        // xaxis: { nticks: 1, title: '' },
-        // yaxis: { nticks: 1, title: '' },
-        // zaxis: { nticks: 1, title: '' }
       }
     };
 
@@ -2992,7 +2989,7 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
     /// ARROWS ///
     //////////////
 
-    //Plotly.plot(div, dim0data, layout1);
+    //Plotly.plot(cell_complex_settings.div_name, dim0data, layout1);
     Plotly.plot(cell_complex_settings.div_name, dim2data, layout1);
     Plotly.plot(cell_complex_settings.div_name, dim1data, layout1);
 
