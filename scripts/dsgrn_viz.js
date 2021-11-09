@@ -2599,8 +2599,8 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
           backgroundcolor: "rgb(200, 200, 230)",
           gridcolor: "rgb(255, 255, 255)",
           zerolinecolor: "rgb(255, 255, 255)",
-          ticktext: ['0', '', '1', '', '2', '', '3', '', '4'],
-          tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4],
+          ticktext: ['0', '', '1', '', '2', '', '3', '', '4', '', '5'],
+          tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
           showbackground: true,
           title: 'x'
         },
@@ -2608,8 +2608,8 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
           backgroundcolor: "rgb(200, 200, 230)",
           gridcolor: "rgb(255, 255, 255)",
           zerolinecolor: "rgb(255, 255, 255)",
-          ticktext: ['0', '', '1', '', '2', '', '3', '', '4'],
-          tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4],
+          ticktext: ['0', '', '1', '', '2', '', '3', '', '4', '', '5'],
+          tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
           showbackground: true,
           title: 'y'
         },
@@ -2617,8 +2617,8 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
           backgroundcolor: "rgb(200, 200, 230)",
           gridcolor: "rgb(255, 255, 255)",
           zerolinecolor: "rgb(255, 255, 255)",
-          ticktext: ['', '', '1', '', '2', '', '3', '', '4'],
-          tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4],
+          ticktext: ['0', '', '1', '', '2', '', '3', '', '4', '', '5'],
+          tickvals: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
           showbackground: true,
           title: 'z'
         }
