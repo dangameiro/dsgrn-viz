@@ -3019,8 +3019,6 @@ function loadJSON_3D(d_complex, d_mg, d_ms, d_stg, d_eqCells) {
 
   const handleNodeClick = c => {
 
-    console.log("clicked node", c);
-
     var click_id = c._groups[0][0].id;
     var click_ind = parseInt(click_id.substring(4, click_id.length));
 
@@ -3186,6 +3184,9 @@ file_selector.addEventListener("change", e => {
     .attr("id", "user")
     .attr("selected", "selected")
     .html("User File");
+
+  general_settings.selected_ms_2d = [];
+  general_settings.selected_ms_3d = [];
 });
 
 var param_node = document.getElementById("param_node");
@@ -3280,6 +3281,9 @@ fileSelect.addEventListener("change", e => {
       plot_param_graph(d);
     });
   }
+
+  general_settings.selected_ms_2d = [];
+  general_settings.selected_ms_3d = [];
 
 });
 
